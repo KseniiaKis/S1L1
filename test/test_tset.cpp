@@ -1,10 +1,10 @@
-#include "Polynom.h"
+#include "Map.h"
 #include <gtest.h>
 
-TEST(TSet, can_get_max_power_set)
-{
-  EXPECT_EQ(3, add(1,2));
-}
+//TEST(TSet, can_get_max_power_set)
+//{
+//  EXPECT_EQ(3, add(1,2));
+//}
 
 /*TEST(TSet, can_insert_non_existing_element)
 {
