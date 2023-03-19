@@ -23,6 +23,7 @@ public:
   bool IsFull();
   void Insert(K key, V val, bool unique);
   bool IsInsertKey(const K key) const;
+  void DelElem(K key);
 
   const V& operator[] (K key) const;
   V& operator[] (K key);
@@ -207,6 +208,31 @@ inline bool TMap<K, V>::IsInsertKey(const K key) const
     if (keys[i] == key)
       return true;
   return false;
+}
+
+template<class K, class V>
+inline void TMap<K, V>::DelElem(K key)
+{
+  K N;
+  K tmp1[size-1];
+  V tmp2[size - 1];
+  for (int i = 0; i < size; i++) 
+  {
+    if (key[i] == key)
+      return N = i;
+    else
+      throw "no this key"
+  }
+  for (int k = 0; k < N; k++) 
+  {
+    tmp1[k] = keys[i];
+    tmp2[k] = values[i];
+  }
+  for (int k = N + 1; k < size; k++)
+  {
+    tmp1[k] = keys[k + 1];
+    tmp2[k] = values[k + 1];
+  }
 }
 
 template<class K, class V>
