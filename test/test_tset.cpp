@@ -1,294 +1,113 @@
-#include "Map.h"
+#include "..\src\MapLib\Map.h"
 #include <gtest.h>
+using namespace std;
 
-//TEST(TSet, can_get_max_power_set)
-//{
-//  EXPECT_EQ(3, add(1,2));
-//}
+typedef TMap<int, int> AllInt;
 
-/*TEST(TSet, can_insert_non_existing_element)
+//TMap(size_t sz, K* key, V* val);
+TEST(TMap, can_create_obj_size_key_val)
 {
-  const int size = 5, k = 3;
-  TSet set(size);
-  set.InsElem(k);
-
-  EXPECT_NE(set.IsMember(k), 0);
+  int key;
+  int val;
+  size_t sz = 2;
+  
+  ASSERT_NO_THROW(AllInt map(sz, &key, &val));
 }
 
-TEST(TSet, can_insert_existing_element)
+//TMap(size_t sz = 0);
+TEST(TMap, can_create_obj_size)
 {
-  const int size = 5;
-  const int k = 3;
-  TSet set(size);
-  set.InsElem(k);
-  set.InsElem(k);
-
-  EXPECT_NE(set.IsMember(k), 0);
+  int sz = 2;
+  ASSERT_NO_THROW(AllInt map(sz));
+}
+//TMap(const TMap<K, V>& map);
+TEST(TMap, can_create_copy_of_tmap_obj)
+{
+  size_t sz = 2;
+  int val[2]{ 1,2 };
+  int key[2]{ 1,4 };
+  TMap<int, int> map1(sz, key, val);
+  ASSERT_NO_THROW(AllInt map_2(map1));
 }
 
-TEST(TSet, can_delete_non_existing_element)
-{
-  const int size = 5, k = 3;
-  TSet set(size);
-  set.DelElem(k);
+//TMap(TMap<K, V>&& map) noexcept;
 
-  EXPECT_EQ(set.IsMember(k), 0);
+//~TMap();
+
+//size_t Size();
+TEST(TMap, size_of_map_is_correct)
+{
+  int val[2]{ 1,2 };
+  int key[2]{ 1,4 };
+  size_t sz = 2;
+  TMap<int, int> map(sz, key, val);
+  EXPECT_EQ(map.Size(), sz);
 }
 
-TEST(TSet, can_delete_existing_element)
+//size_t Count();
+TEST(TMap, count_is_correct)
 {
-  const int size = 5, k = 3;
-  TSet set(size);
-
-  set.InsElem(k);
-  EXPECT_GT(set.IsMember(k), 0);
-
-  set.DelElem(k);
-  EXPECT_EQ(set.IsMember(k), 0);
+  int val[2]{ 1,2 };
+  int key[2]{ 1,4 };
+  size_t sz = 2;
+  TMap<int, int> map(sz, key, val);
+  EXPECT_EQ(map.Count(), sz);
 }
 
-TEST(TSet, compare_two_sets_of_non_equal_sizes)
+//K GetKey(size_t ind);
+TEST(TMap, correct_key)
 {
-  const int size1 = 4, size2 = 6;
-  TSet set1(size1), set2(size2);
-
-  EXPECT_EQ(1, set1 != set2);
+  int k = 1;
+  int v = 2;
+  size_t sz = 1;
+  TMap<int, int> map(sz, &k, &v);
+  EXPECT_EQ(map.GetKey(0), k);
 }
 
-TEST(TSet, compare_two_equal_sets)
+//bool IsFull();
+TEST(TMap, it_is_full)
 {
-  const int size = 4;
-  TSet set1(size), set2(size);
-  // set1 = set2 = {1, 3}
-  set1.InsElem(1);
-  set1.InsElem(3);
-  set2.InsElem(1);
-  set2.InsElem(3);
+  int k = 1;
+  int v = 2;
+  size_t sz = 1;
+  TMap<int, int> map(sz, &k, &v);
+  EXPECT_EQ(map.IsFull(), 1);
+}
+//void Insert(K key, V val, bool unique);
 
-  EXPECT_EQ(set1, set2);
+//bool IsInsertKey(const K key) const;
+//const V& operator[] (K key) const;
+//V& operator[] (K key);
+
+//bool operator == (const TMap<K, V>& map);
+TEST(TMap, can_compare_)
+{
+  int k = 1;
+  int v = 2;
+  size_t sz = 1;
+  TMap<int, int> map(sz, &k, &v);
+  TMap<int, int> map_1(map);
+  EXPECT_TRUE(map == map_1);
 }
 
-TEST(TSet, compare_two_non_equal_sets)
+//bool operator != (const TMap<K, V>& map);
+TEST(TMap, can_compare_correctly)
 {
-  const int size = 4;
-  TSet set1(size), set2(size);
-  // set1 = {1, 3}
-  set1.InsElem(1);
-  set1.InsElem(3);
-  // set2 = {1, 2}
-  set2.InsElem(1);
-  set2.InsElem(2);
-
-  EXPECT_EQ(1, set1 != set2);
+  int k = 1;
+  int v = 2;
+  size_t sz = 1;
+  TMap<int, int> map(sz, &k, &v);
+  TMap<int, int> map_1(map);
+  EXPECT_FALSE(map != map_1);
 }
+//TMap<K, V> operator = (const TMap<K, V>& map);
 
-TEST(TSet, can_assign_set_of_equal_size)
+//TMap<K, V> operator = (TMap<K, V>&& map);
+TEST(TMap, cannot_copy_itself)
 {
-  const int size = 4;
-  TSet set1(size), set2(size);
-  // set1 = {1, 3}
-  set1.InsElem(1);
-  set1.InsElem(3);
-  set2 = set1;
-
-  EXPECT_EQ(set1, set2);
+  int k = 1;
+  int v = 2;
+  size_t sz = 1;
+  TMap<int, int> map(sz, &k, &v);
+  ASSERT_ANY_THROW(map = map);
 }
-
-TEST(TSet, can_assign_set_of_greater_size)
-{
-  const int size1 = 4, size2 = 6;
-  TSet set1(size1), set2(size2);
-  // set1 = {1, 3}
-  set1.InsElem(1);
-  set1.InsElem(3);
-  set2 = set1;
-
-  EXPECT_EQ(set1, set2);
-}
-
-TEST(TSet, can_assign_set_of_less_size)
-{
-  const int size1 = 6, size2 = 4;
-  TSet set1(size1), set2(size2);
-  // set1 = {1, 3, 5}
-  set1.InsElem(1);
-  set1.InsElem(3);
-  set1.InsElem(5);
-  set2 = set1;
-
-  EXPECT_EQ(set1, set2);
-}
-
-TEST(TSet, can_insert_non_existing_element_using_plus_operator)
-{
-  const int size = 4;
-  const int k = 3;
-  TSet set(size), updatedSet(size);
-  set.InsElem(0);
-  set.InsElem(2);
-  updatedSet = set + k;
-
-  EXPECT_NE(0, updatedSet.IsMember(k));
-}
-
-TEST(TSet, throws_when_insert_non_existing_element_out_of_range_using_plus_operator)
-{
-  const int size = 4;
-  const int k = 6;
-  TSet set(size), updatedSet(size);
-  set.InsElem(0);
-  set.InsElem(2);
-
-  ASSERT_ANY_THROW(updatedSet = set + k);
-}
-
-TEST(TSet, can_insert_existing_element_using_plus_operator)
-{
-  const int size = 4;
-  const int k = 3;
-  TSet set(size), updatedSet(size);
-  set.InsElem(0);
-  set.InsElem(k);
-  updatedSet = set + k;
-
-  EXPECT_NE(0, set.IsMember(k));
-}
-
-TEST(TSet, check_size_of_the_combination_of_two_sets_of_equal_size)
-{
-  const int size = 5;
-  TSet set1(size), set2(size), set3(size);
-  // set1 = {1, 2, 4}
-  set1.InsElem(1);
-  set1.InsElem(2);
-  set1.InsElem(4);
-  // set2 = {0, 1, 2}
-  set2.InsElem(0);
-  set2.InsElem(1);
-  set2.InsElem(2);
-  set3 = set1 + set2;
-
-  EXPECT_EQ(size, set3.GetMaxPower());
-}
-
-TEST(TSet, can_combine_two_sets_of_equal_size)
-{
-  const int size = 5;
-  TSet set1(size), set2(size), set3(size), expSet(size);
-  // set1 = {1, 2, 4}
-  set1.InsElem(1);
-  set1.InsElem(2);
-  set1.InsElem(4);
-  // set2 = {0, 1, 2}
-  set2.InsElem(0);
-  set2.InsElem(1);
-  set2.InsElem(2);
-  set3 = set1 + set2;
-  // expSet = {0, 1, 2, 4}
-  expSet.InsElem(0);
-  expSet.InsElem(1);
-  expSet.InsElem(2);
-  expSet.InsElem(4);
-
-  EXPECT_EQ(expSet, set3);
-}
-
-TEST(TSet, check_size_changes_of_the_combination_of_two_sets_of_non_equal_size)
-{
-  const int size1 = 5, size2 = 7;
-  TSet set1(size1), set2(size2), set3(size1);
-  // set1 = {1, 2, 4}
-  set1.InsElem(1);
-  set1.InsElem(2);
-  set1.InsElem(4);
-  // set2 = {0, 1, 2}
-  set2.InsElem(0);
-  set2.InsElem(1);
-  set2.InsElem(2);
-  set3 = set1 + set2;
-
-  EXPECT_EQ(size2, set3.GetMaxPower());
-}
-
-TEST(TSet, can_combine_two_sets_of_non_equal_size)
-{
-  const int size1 = 5, size2 = 7;
-  TSet set1(size1), set2(size2), set3(size1), expSet(size2);
-  // set1 = {1, 2, 4}
-  set1.InsElem(1);
-  set1.InsElem(2);
-  set1.InsElem(4);
-  // set2 = {0, 1, 2, 6}
-  set2.InsElem(0);
-  set2.InsElem(1);
-  set2.InsElem(2);
-  set2.InsElem(6);
-  set3 = set1 + set2;
-  // expSet = {0, 1, 2, 4, 6}
-  expSet.InsElem(0);
-  expSet.InsElem(1);
-  expSet.InsElem(2);
-  expSet.InsElem(4);
-  expSet.InsElem(6);
-
-  EXPECT_EQ(expSet, set3);
-}
-
-TEST(TSet, can_intersect_two_sets_of_equal_size)
-{
-  const int size = 5;
-  TSet set1(size), set2(size), set3(size), expSet(size);
-  // set1 = {1, 2, 4}
-  set1.InsElem(1);
-  set1.InsElem(2);
-  set1.InsElem(4);
-  // set2 = {0, 1, 2}
-  set2.InsElem(0);
-  set2.InsElem(1);
-  set2.InsElem(2);
-  set3 = set1 * set2;
-  // expSet = {1, 2}
-  expSet.InsElem(1);
-  expSet.InsElem(2);
-
-  EXPECT_EQ(expSet, set3);
-}
-
-TEST(TSet, can_intersect_two_sets_of_non_equal_size)
-{
-  const int size1 = 5, size2 = 7;
-  TSet set1(size1), set2(size2), set3(size1), expSet(size2);
-  // set1 = {1, 2, 4}
-  set1.InsElem(1);
-  set1.InsElem(2);
-  set1.InsElem(4);
-  // set2 = {0, 1, 2, 4, 6}
-  set2.InsElem(0);
-  set2.InsElem(1);
-  set2.InsElem(2);
-  set2.InsElem(4);
-  set2.InsElem(6);
-  set3 = set1 * set2;
-  // expSet = {1, 2, 4}
-  expSet.InsElem(1);
-  expSet.InsElem(2);
-  expSet.InsElem(4);
-
-  EXPECT_EQ(expSet, set3);
-}
-
-TEST(TSet, check_negation_operator)
-{
-  const int size = 4;
-  TSet set(size), set1(size), expSet(size);
-  // set1 = {1, 3}
-  set.InsElem(1);
-  set.InsElem(3);
-  set1 = ~set;
-  // expSet = {0, 2}
-  expSet.InsElem(0);
-  expSet.InsElem(2);
-
-  EXPECT_EQ(expSet, set1);
-}
-*/

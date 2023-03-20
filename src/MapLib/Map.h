@@ -12,7 +12,7 @@ protected:
   size_t count;
 public:
   TMap(size_t sz, K* key, V* val);
-  TMap(size_t sz = 1);
+  TMap(size_t sz = 0);
   TMap(const TMap<K, V>& map);
   TMap(TMap<K, V>&& map) noexcept;
   ~TMap();
