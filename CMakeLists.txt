@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-set(PROJECT_NAME set)
+set(PROJECT_NAME polynom)
 project(${PROJECT_NAME})
 
 # TODO(Korniakov): not sure if these lines are needed
@@ -9,15 +9,16 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(Polynom_LIBRARY "${PROJECT_NAME}")
 set(Polynom_TESTS   "test_${PROJECT_NAME}")
-set(Polynom_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
-include_directories("${Polynom_INCLUDE}" gtest)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/gtest)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/test)
 
 # BUILD
-add_subdirectory(src)
-add_subdirectory(samples)
+add_subdirectory(src/MapLib)
+add_subdirectory(src/SMapLib)
+add_subdirectory(src/StackLib)
 add_subdirectory(gtest)
 add_subdirectory(test)
 
