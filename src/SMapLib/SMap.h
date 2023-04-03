@@ -1,13 +1,24 @@
 #pragma once
+#include "..\src\MapLib\Map.h"
+
 using namespace std;
+
 template<class Key, class Data>
 class TItem
 {
 protected:
-  Key* key;
-  Data* data;
+	Key* key = nullptr;
+	Data* data = nullptr;
+
 public:
-  TItem(Key* k = nullptr, Data* d = nullptr);
+	TItem();
+	TItem(Key _key, Data _data);
+	TItem(Key& _key, Data& _data);
+	TItem(Key* k, Data* d);
+
+	TItem(const TItem<Key, Data>& _item);
+
+	~TItem();
   
   Key* getKey();
   void setKey(Key* k);
@@ -17,21 +28,78 @@ public:
 
   bool operator < (const TItem<Key, Data>& p);
   bool operator > (const TItem < Key, Data >& p);
+	bool operator != (const TItem<Key, Data>& p);
   bool operator == (const TItem < Key, Data >& p);
 };
 
 template<class Key, class Data>
+inline TItem<Key, Data>::TItem()
+{
+	key = new Key;
+	data = new Data;
+}
+
+template<class Key, class Data>
+inline TItem<Key, Data>::TItem(Key _key, Data _data)
+{
+	key = new Key;
+	data = new Data;
+	*key = _key;
+	*data = _data;
+}
+
+template<class Key, class Data>
+inline TItem<Key, Data>::TItem(Key& _key, Data& _data)
+{
+	key = new Key;
+	data = new Data;
+
+	*key = _key;
+	*data = _data;
+}
+
+template<class Key, class Data>
 inline TItem<Key, Data>::TItem(Key* k, Data* d)
 {
-  key = k;
-  data = d;
+	key = new Key;
+	data = new Data;
+
+	key = k;
+	data = d;
+}
+
+template<class Key, class Data>
+inline TItem<Key, Data>::TItem(const TItem<Key, Data>& _item)
+{
+	if (_item.data == nullptr || _item.key == nullptr) throw "empty object";
+	else
+	{
+		data = new Data;
+		data = _item.data;
+		key = new Key;
+		key = _item.key;
+	}
+}
+
+template<class Key, class Data>
+inline TItem<Key, Data>::~TItem()
+{
+	if (data != nullptr)
+	{
+		delete data;
+		data = nullptr;
+	}
+	if (key != nullptr)
+	{
+		delete key;
+		key = nullptr;
+	}
 }
 
 template<class Key, class Data>
 inline Key* TItem<Key, Data>::getKey()
 {
   return key;
-  return nullptr;
 }
 
 template<class Key, class Data>
@@ -56,9 +124,21 @@ inline void TItem<Key, Data>::setData(Data* d)
 }
 
 template<class Key, class Data>
+inline bool TItem<Key, Data>::operator<(const TItem<Key, Data>& p)
+{
+  return *key < *p.key;
+}
+
+template<class Key, class Data>
 inline bool TItem<Key, Data>::operator>(const TItem<Key, Data>& p)
 {
   return *key > *p.key;
+}
+
+template<class Key, class Data>
+inline bool TItem<Key, Data>::operator !=(const TItem<Key, Data>& p)
+{
+  return(!(*this) == p);
 }
 
 template<class Key, class Data>
@@ -67,11 +147,6 @@ inline bool TItem<Key, Data>::operator==(const TItem<Key, Data>& p)
   return *key == *p.key;
 }
 
-template<class Key, class Data>
-inline bool TItem<Key, Data>::operator<(const TItem<Key, Data>& p)
-{
-  return *key < *p.key;
-}
 
 template<class Key, class Data>
 class TSmap
@@ -85,7 +160,9 @@ public:
   ~TSmap();
 
   Data& operator[](const Key& k);
-  Data* Finde(const Key& k);
+
+  size_t BinarySearch(const Key& _key);
+  Data* Find(const Key& k);
   void Add(Key* k, Data* d);
   void Delete(const Key& k);
 };
@@ -145,15 +222,41 @@ inline Data& TSmap<Key, Data>::operator[](const Key& k)
 }
 
 template<class Key, class Data>
-inline Data* TSmap<Key, Data>::Finde(const Key& k) // не уверена
+inline size_t TSmap<Key, Data>::BinarySearch(const Key& _key)
 {
-  for (int i = 0; i < count; i++)
+  size_t start = 0;
+  size_t index = count / 2;
+  size_t end = count - 1;
+  while (start <= end)
   {
-    if (items[i].getKey() == k)
-      return items[i];
-    else
-      throw "Error!";
+    if (*(items[index].GetKey()) == _key)
+    {
+      return index;
+    }
+    if (_key > *(items[index].GetKey()))
+    {
+      start = index;
+      index = (start + end) / 2;
+    }
+    if (_key < *(items[index].GetKey()))
+    {
+      end = index;
+      index = (end - start) / 2;
+    }
+    if (start == end)
+    {
+      return -1;
+    }
   }
+}
+
+template<class Key, class Data>
+inline Data* TSmap<Key, Data>::Find(const Key& _key)
+{
+  if (BinarySearch(_key) >= 0)
+    return(items[BinarySearch(_key)].GetData());
+  else
+    throw "Error!";
 }
 
 template<class Key, class Data>
@@ -196,12 +299,12 @@ inline void TSmap<Key, Data>::Delete(const Key& k)
     if (k > items[index])
     {
       start = index;
-      index = start + ((end * start) / 2); // не уверена в выражении
+      index = start + ((end * start) / 2);
     }
     else if (k < items[index])
     {
       end = index;
-      index = start + ((end * start) / 2); // не уверена в выражении
+      index = start + ((end * start) / 2);
     }
     else if (k == items[index])
     {
