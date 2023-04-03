@@ -13,7 +13,7 @@ protected:
 public:
   TMap(size_t sz, K* key, V* val);
   TMap(size_t sz = 0);
-  TMap(const TMap<K, V>& map);
+  TMap(TMap<K, V>& map);
   TMap(TMap<K, V>&& map) noexcept;
   ~TMap();
 
@@ -94,7 +94,7 @@ inline TMap<K, V>::TMap(size_t sz)
 }
 
 template<class K, class V>
-inline TMap<K, V>::TMap(const TMap<K, V>& map)
+inline TMap<K, V>::TMap(TMap<K, V>& map)
 {
   if (map.values == nullptr || map.keys == nullptr)
   {

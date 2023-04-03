@@ -21,6 +21,7 @@ add_subdirectory(src/SMapLib)
 add_subdirectory(src/StackLib)
 add_subdirectory(gtest)
 add_subdirectory(test)
+add_subdirectory(samples)
 
 # REPORT
 message( STATUS "")
