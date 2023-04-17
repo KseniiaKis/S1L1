@@ -1,168 +1,357 @@
 #pragma once
-#include <algorithm>
+#include <exception>
 
-template <class Key, class Data>
-class TTree {
-  
-  class Node 
-  {
-  public:
-    Key key;
-    Data value;
-    unsigned char height;
-    Node* left;
-    Node* right;
-    Node(const Key&_key, const Data& _value): key(_key), value(_value), height(1), left(nullptr), right(nullptr) {}
-  };
-private:
-  Node* root;
-  size_t sz;
+template <typename T>
+class TRbTree
+{
+	enum Color { COLOR_RED, COLOR_BLACK };
+
+	struct Node
+	{
+		unsigned char color;
+
+		T data;
+
+		Node* parent;
+		Node* right; //больше текущего
+		Node* left; //меньше текущего
+
+		Node() :parent(nullptr), right(nullptr), left(nullptr), color(COLOR_BLACK) {};//Лист
+		Node(T data, Color color, Node* parent, Node* left, Node* right) : data(data), color(color), parent(parent), left(left), right(right) {}
+	};
+
+	Node* sheet = new Node();//Фиктивная вершина черного цвета, левый и правый потомок nullptr. 
+	Node* root = sheet;
+
+	Node* findeNode(const T& data)
+	{
+		Node* current = root;
+
+		while (current != sheet && current->data != data)
+			if (current->data > data)
+				current = current->left;
+			else
+				current = current->right;
+
+		return current;
+	}
+
+	Node* getUncle(Node* node)
+	{
+		Node* gParent = getGrandParent(node);
+
+		if (gParent == nullptr)
+			return nullptr;
+
+		if (gParent->right == node->parent)
+			return gParent->left;
+		else
+			return gParent->right;
+	}
+
+	Node* getGrandParent(Node* node)
+	{
+		if (node->parent != sheet && node->parent->parent != sheet)
+			return node->parent->parent;
+		else
+			return nullptr;
+	}
+
+	void rightRotate(Node* node)
+	{
+		if (node->left != sheet)
+		{
+			Node* lChild = node->left;
+			node->left = lChild->right;
+
+			if (lChild->right != sheet)
+				lChild->right->parent = node;
+
+			lChild->parent = node->parent;
+
+			if (node->parent == sheet)
+				root = lChild;
+			else if (node == node->parent->left)
+				node->parent->left = lChild;
+			else
+				node->parent->right = lChild;
+
+			lChild->right = node;
+		}
+	}
+
+	void leftRotate(Node* node)
+	{
+		if (node->right != sheet)
+		{
+			Node* rChild = node->right;
+			node->right = rChild->left;
+
+			if (rChild->left != sheet)
+				rChild->left->parent = node;
+
+			rChild->parent = node->parent;
+
+			if (node->parent == sheet)
+				root = rChild;
+			else if (node == node->parent->left)
+				node->parent->left = rChild;
+			else
+				node->parent->right = rChild;
+
+			rChild->left = node;
+		}
+	}
+
+	Node* getMin(Node* start)
+	{
+		Node* current = start;
+		while (current->left != sheet)
+			current = current->left;
+
+		return current;
+	}
+
+	void transplant(Node* node1, Node* node2)
+	{
+		if (node1->parent == sheet)
+			root = node2;
+		else if (node1->parent->left == node1)
+			node1->parent->left = node2;
+		else
+			node1->parent->right = node2;
+
+		node2->parent = node1->parent;
+	}
+
+	void treeRecovery(Node* current)
+	{
+		while (current != root && current->color != COLOR_BLACK)
+		{
+			if (current == current->parent->left)
+			{
+				Node* brother = current->parent->right;
+				if (brother->color == COLOR_RED)
+				{
+					brother->color = COLOR_BLACK;
+					current->parent->color = COLOR_RED;
+
+					leftRotate(current->parent);
+
+					brother = current->parent->right;
+				}
+
+				if (brother->left->color == COLOR_BLACK && brother->right->color == COLOR_BLACK)
+				{
+					brother->color = COLOR_RED;
+					current = current->parent;
+				}
+				else
+				{
+					if (brother->right->color == COLOR_BLACK)
+					{
+						brother->left->color = COLOR_BLACK;
+						brother->color = COLOR_RED;
+
+						rightRotate(brother);
+
+						brother = current->parent->right;
+					}
+
+					brother->color = current->parent->color;
+					current->parent->color = COLOR_BLACK;
+					brother->right->color = COLOR_BLACK;
+
+					leftRotate(current->parent);
+
+					current = root;
+				}
+			}
+			else
+			{
+				Node* brother = current->parent->left;
+				if (brother->color == COLOR_RED)
+				{
+					brother->color = COLOR_BLACK;
+					current->parent->color = COLOR_RED;
+
+					rightRotate(current->parent);
+
+					brother = current->parent->left;
+				}
+
+				if (brother->right->color == COLOR_BLACK && brother->left->color == COLOR_BLACK)
+				{
+					brother->color = COLOR_RED;
+					current = current->parent;
+				}
+				else
+				{
+					if (brother->left->color == COLOR_BLACK)
+					{
+						brother->right->color = COLOR_BLACK;
+						brother->color = COLOR_RED;
+
+						leftRotate(brother);
+
+						brother = current->parent->left;
+					}
+
+					brother->color = current->parent->color;
+					current->parent->color = COLOR_BLACK;
+					brother->left->color = COLOR_BLACK;
+
+					rightRotate(current->parent);
+
+					current = root;
+				}
+			}
+		}
+
+		current->color = COLOR_BLACK;
+	}
 
 public:
-  unsigned int height(Node* node) 
-  {
-    return (node != nullptr ? node->height : 0);
-  }
-  int balance_factor(Node* node) 
-  {
-    return (int)(height(node->right)) - (int)(height(node->left));
-  }
-  void fix_height(Node* node) 
-  {
-    node->height = std::max(height(node->left), height(node->right)) + 1;
-  }
+	T find(const T& key)
+	{
+		Node* node = findeNode(key);
+		if (node != nullptr)
+			return node->data;
+		else
+			throw std::exception("No such key");
+	}
 
-  Node* _RotateLeft(Node* node) 
-  {
-    Node* new_node = node->right;
-    node->right = new_node->left;
-    new_node->left = node;
-    fix_height(node);
-    fix_height(new_node);
-    return new_node;
-  }
-  Node* _RotateRight(Node* node) 
-  {
-    Node* new_node = node->left;
-    node->left = new_node->right;
-    new_node->right = node;
-    fix_height(node);
-    fix_height(new_node);
-    return new_node;
-  }
-  Node* balance(Node* node) 
-  {
-    fix_height(node);
-    if (balance_factor(node) == 2) {
-      if (balance_factor(node->right) < 0)
-        node->right = _RotateRight(node->right);
-      node = _RotateLeft(node);
-    }
-    if (balance_factor(node) == -2) {
-      if (balance_factor(node->left) > 0)
-        node->left = _RotateLeft(node->left);
-      node = _RotateRight(node);
-    }
-    return node;
-  }
+	void insert(T key)
+	{
+		if (root == sheet)
+		{
+			root = new Node(key, COLOR_BLACK, sheet, sheet, sheet);
+		}
+		else
+		{
+			Node* current = root;
 
-  Node* findmin(Node* node) 
-  {
-    return node->left ? findmin(node->left) : node;
-  }
-  Node* removemin(Node* node) 
-  {
-    if (node->left == nullptr)
-      return node->right;
-    node->left = removemin(node->left);
-    return balance(node);
-  }
+			while (current->right != sheet && current->data < key || current->left != sheet && current->data > key)
+			{
+				if (current->data == key)
+					throw exception("Key olready exists");
 
-  Node* __Insert(Node* node, const Key& key, const Data& value, bool replacement) 
-  {
-    if (node == nullptr) {
-      sz++;
-      return new Node(key, value);
-    }
-    if (key < node->key)
-      node->left = __Insert(node->left, key, value, replacement);
-    else if (key > node->key)
-      node->right = __Insert(node->right, key, value, replacement);
-    else if (replacement) {
-      node->value = value;
-    }
+				if (current->data < key)
+					current = current->right;
+				else
+					current = current->left;
+			}
 
-    return balance(node);
-  }
-  Node* __Remove(Node* node, const Key& key)
-  {
-    if (node == nullptr)
-      return nullptr;
-    if (key < node->key)
-      node->left = __Remove(node->left, key);
-    else if (key > node->key)
-      node->right = __Remove(node->right, key);
-    else //  key == node->key
-    {
-      Node* left_node = node->left;
-      Node* right_node = node->right;
-      delete node;
-      sz--;
-      if (right_node == nullptr)
-        return left_node;
-      Node* min = findmin(right_node);
-      min->right = removemin(right_node);
-      min->left = left_node;
-      return balance(min);
-    }
-    return balance(node);
-  }
-  Node* __Find(Node* node, const Key& key) 
-  {
-    if (node == nullptr)
-      return nullptr;
+			if (current->data < key)
+			{
+				current->right = new Node(key, COLOR_RED, current, sheet, sheet);
+				current = current->right;
+			}
+			else
+			{
+				current->left = new Node(key, COLOR_RED, current, sheet, sheet);
+				current = current->left;
+			}
 
-    if (key < node->key)
-      return __Find(node->left, key);
-    if (key > node->key)
-      return __Find(node->right, key);
+			while (current->parent->color == COLOR_RED)
+			{
+				if (current->parent == getGrandParent(current)->left)
+				{
+					if (getUncle(current)->color == COLOR_RED)
+					{
+						current->parent->color = COLOR_BLACK;
+						getUncle(current)->color = COLOR_BLACK;
+						getGrandParent(current)->color = COLOR_RED;
+						current = getGrandParent(current);
+					}
+					else
+					{
+						if (current == current->parent->right)
+						{
+							leftRotate(current->parent);
+						}
 
-    return node;
-  }
+						current->parent->color = COLOR_BLACK;
+						getGrandParent(current)->color = COLOR_RED;
+						rightRotate(getGrandParent(current));
+					}
+				}
+				else
+				{
+					if (getUncle(current)->color == COLOR_RED)
+					{
+						current->parent->color = COLOR_BLACK;
+						getUncle(current)->color = COLOR_BLACK;
+						getGrandParent(current)->color = COLOR_RED;
+						current = getGrandParent(current);
+					}
+					else
+					{
+						if (current == current->parent->left)
+						{
+							rightRotate(current->parent);
+						}
 
-  TAVLTree()
-    : root(nullptr),
-    sz(0) {
-  }
+						current->parent->color = COLOR_BLACK;
+						getGrandParent(current)->color = COLOR_RED;
+						leftRotate(getGrandParent(current));
+					}
+				}
+			}
+			root->color = COLOR_BLACK;
+		}
+	}
 
-  size_t size() const noexcept 
-  {
-    return sz;
-  }
-  bool empty() const noexcept 
-  {
-    return sz == 0;
-  }
+	//Удалить элемент
+	void remove(const T& key)
+	{
+		Node* current = findeNode(key);
 
-  void insert(const Key& key, const Data& value, bool replacement = false)
-  {
-    root = __Insert(root, key, value, replacement);
-  }
+		if (current != sheet)
+		{
+			unsigned char color = current->color;
+			Node* changedNode;
 
-  void remove(const Key& key) 
-  {
-    root = __Remove(root, key);
-  }
+			if (current->left == sheet)
+			{
+				changedNode = current->right;
+				transplant(current, current->right);
+			}
+			else if (current->right == sheet)
+			{
+				changedNode = current->left;
+				transplant(current, current->left);
+			}
+			else
+			{
+				Node* min = getMin(current->right);
+				color = min->color;
+				changedNode = min->right;
 
-  bool find(const Key& key) 
-  {
-    return __Find(root, key) != nullptr;
-  }
-  Data& at(const Key& key)
-  {
-    Node* place = __Find(root, key);
-    if (place == nullptr)
-      throw "No key in table";
-    return place->value;
-  }
+				if (min->parent == current)
+				{
+					changedNode->parent = min;
+				}
+				else
+				{
+					transplant(min, min->right);
+
+					min->right = current->right;
+					min->right->parent = min;
+				}
+
+				transplant(current, min);
+				min->left = current->left;
+				min->left->parent = min;
+				min->color = current->color;
+			}
+
+			delete[] current;
+
+			if (color == COLOR_BLACK)
+				treeRecovery(changedNode);
+		}
+	}
+
+	bool isEmpty() const noexcept { return root == sheet; }
 };
